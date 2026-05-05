@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CLASS1C El Assima - Le Site</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Graduate&family=Alex+Brush&display=swap" rel="stylesheet">
+    <link rel="manifest" href="manifest.json">
+</head>
+<body>
+    <div class="app-layout">
+        
+        <!-- GAUCHE : Playlist Centrale -->
+        <main class="content-area">
+            <header class="site-header">
+                <div class="logo-text-main">
+                    <span class="logo-classic">CLASS1C</span>
+                    <span class="logo-assima">El Assima</span>
+                </div>
+            </header>
+
+            <div class="large-playlist-container">
+                <h2 class="large-playlist-title">🎵 Playlist Officielle</h2>
+                <ul id="playlist" class="playlist large-playlist">
+                    <li class="playlist-empty">Aucune musique chargée</li>
+                </ul>
+            </div>
+        </main>
+
+        <!-- DROITE : Le Lecteur de Musique -->
+        <aside class="sidebar-player">
+            <div class="player-container">
+                <div class="header">
+                    <span class="title">CLASS1C</span>
+                </div>
+                
+                <div class="album-art-container">
+                    <div class="album-art" id="albumArt">
+                        <div class="music-note">🎵</div>
+                    </div>
+                </div>
+
+                <div class="track-info">
+                    <h1 id="trackTitle">Sélectionnez une musique</h1>
+                    <p id="trackArtist">Artiste Inconnu</p>
+                </div>
+
+                <div class="progress-container">
+                    <span id="currentTime">0:00</span>
+                    <input type="range" id="progressBar" min="0" max="100" value="0">
+                    <span id="duration">0:00</span>
+                </div>
+
+                <div class="controls">
+                    <button class="btn-control" id="prevBtn">
+                        <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+                    </button>
+                    <button class="btn-play" id="playBtn">
+                        <svg viewBox="0 0 24 24" id="playIcon"><path d="M8 5v14l11-7z"/></svg>
+                    </button>
+                    <button class="btn-control" id="nextBtn">
+                        <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+                    </button>
+                </div>
+                
+                <div class="file-loader">
+                    <label for="audioUpload" class="upload-btn">Ajouter des musiques</label>
+                    <input type="file" id="audioUpload" accept="audio/*" multiple>
+                </div>
+            </div>
+        </aside>
+
+    </div>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                .then(registration => console.log('SW registered'))
+                .catch(err => console.log('SW failed', err));
+            });
+        }
+    </script>
+    <script src="app.js"></script>
+</body>
+</html>
