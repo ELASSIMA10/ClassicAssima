@@ -1,10 +1,11 @@
-const CACHE_NAME = 'classic-el-assima-v1';
+const CACHE_NAME = 'classic-el-assima-v2';
 const urlsToCache = [
   './',
   './index.html',
   './style.css',
   './app.js',
   './manifest.json',
+  './images.png',
   './bg.jpeg',
   './Medina d\'alger.mp3',
   './El Assima - Defra دفرة - Abdelghani Yaddaden.mp3',
