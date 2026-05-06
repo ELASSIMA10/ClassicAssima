@@ -71,11 +71,8 @@ audio.addEventListener('ended', () => {
         audio.currentTime = 0;
         audio.play().catch(e => console.log(e));
     } else {
-        // Déclencher le bouton "Suivant" après un très court délai
-        setTimeout(() => {
-            console.log("Déclenchement automatique de la piste suivante");
-            nextTrack(true);
-        }, 100);
+        // IMPORTANT: Appel DIRECT sans setTimeout pour conserver le privilège de lecture sur mobile
+        nextTrack(true);
     }
 });
 
