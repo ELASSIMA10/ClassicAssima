@@ -255,3 +255,30 @@ function updateMediaSession() {
 // Initialisation au chargement
 renderPlaylist();
 loadTrack(0);
+
+// Tentative d'autoplay au chargement
+window.addEventListener('load', () => {
+    // Petit délai pour laisser le temps au navigateur de s'initialiser
+    setTimeout(() => {
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.then(() => {
+                console.log("Autoplay réussi");
+                isPlaying = true;
+            }).catch(e => {
+                console.log("Autoplay bloqué, en attente d'interaction.");
+                isPlaying = false;
+                // On attend le premier clic pour démarrer
+                const startOnInteraction = () => {
+                    if (!isPlaying) {
+                        togglePlay();
+                        document.removeEventListener('click', startOnInteraction);
+                        document.removeEventListener('touchstart', startOnInteraction);
+                    }
+                };
+                document.addEventListener('click', startOnInteraction);
+                document.addEventListener('touchstart', startOnInteraction);
+            });
+        }
+    }, 1000);
+});

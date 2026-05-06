@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-el-assima-v7';
+const CACHE_NAME = 'classic-el-assima-v8';
 const urlsToCache = [
   './',
   './index.html',
@@ -43,7 +43,6 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   
-  // Gérer les requêtes de plage (Range) pour l'audio et la vidéo
   if (event.request.headers.get('range') && (url.pathname.endsWith('.mp3') || url.pathname.endsWith('.mp4'))) {
     event.respondWith(handleRangeRequest(event.request));
   } else {
