@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-el-assima-v2';
+const CACHE_NAME = 'classic-el-assima-v3';
 const urlsToCache = [
   './',
   './index.html',
@@ -19,6 +19,21 @@ self.addEventListener('install', event => {
       .then(cache => {
         return cache.addAll(urlsToCache);
       })
+  );
+});
+
+self.addEventListener('activate', event => {
+  const cacheWhitelist = [CACHE_NAME];
+  event.waitUntil(
+    caches.keys().then(cacheNames => {
+      return Promise.all(
+        cacheNames.map(cacheName => {
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    })
   );
 });
 
