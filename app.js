@@ -129,13 +129,17 @@ function loadTrack(index) {
     
     const track = tracks[index];
     
+    // Reset and load
+    audio.pause();
     audio.src = track.url;
+    audio.load(); // Indispensable pour certains navigateurs mobiles
+    
     trackTitle.textContent = track.name; 
     trackArtist.textContent = "CLASS1C El Assima";
     
     updateMediaSession();
     
-    // Update active class in playlist
+    // Mise à jour de la playlist (UI)
     const items = playlistEl.querySelectorAll('li');
     items.forEach((item, i) => {
         if (i === index) {
@@ -149,13 +153,20 @@ function loadTrack(index) {
     });
     
     if (isPlaying) {
-        audio.play().catch(e => {
-            console.log("Erreur play:", e);
-            // Retry for mobile background
-            setTimeout(() => {
-                if (isPlaying) audio.play().catch(err => console.log("Retry failed:", err));
-            }, 100);
-        });
+        if ('mediaSession' in navigator) {
+            navigator.mediaSession.playbackState = 'playing';
+        }
+        
+        const playPromise = audio.play();
+        if (playPromise !== undefined) {
+            playPromise.catch(e => {
+                console.log("Erreur lecture auto:", e);
+                // Tentative de relance
+                setTimeout(() => {
+                    if (isPlaying) audio.play().catch(err => console.log("Echec relance:", err));
+                }, 300);
+            });
+        }
     }
 }
 

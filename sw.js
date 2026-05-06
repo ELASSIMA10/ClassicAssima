@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-el-assima-v5';
+const CACHE_NAME = 'classic-el-assima-v7';
 const urlsToCache = [
   './',
   './index.html',
@@ -14,7 +14,7 @@ const urlsToCache = [
 ];
 
 self.addEventListener('install', event => {
-  self.skipWaiting(); // Force le nouveau SW à s'activer immédiatement
+  self.skipWaiting();
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(cache => {
@@ -26,7 +26,7 @@ self.addEventListener('install', event => {
 self.addEventListener('activate', event => {
   event.waitUntil(
     Promise.all([
-      self.clients.claim(), // Permet au SW de prendre le contrôle des pages immédiatement
+      self.clients.claim(),
       caches.keys().then(cacheNames => {
         return Promise.all(
           cacheNames.map(cacheName => {
@@ -41,10 +41,47 @@ self.addEventListener('activate', event => {
 });
 
 self.addEventListener('fetch', event => {
-  event.respondWith(
-    caches.match(event.request)
-      .then(response => {
-        return response || fetch(event.request);
-      })
-  );
+  const url = new URL(event.request.url);
+  
+  // Gérer les requêtes de plage (Range) pour l'audio et la vidéo
+  if (event.request.headers.get('range') && (url.pathname.endsWith('.mp3') || url.pathname.endsWith('.mp4'))) {
+    event.respondWith(handleRangeRequest(event.request));
+  } else {
+    event.respondWith(
+      caches.match(event.request)
+        .then(response => {
+          return response || fetch(event.request);
+        })
+    );
+  }
 });
+
+async function handleRangeRequest(request) {
+  const cache = await caches.open(CACHE_NAME);
+  const cachedResponse = await cache.match(request.url);
+  
+  if (!cachedResponse) {
+    return fetch(request);
+  }
+
+  const rangeHeader = request.headers.get('range');
+  const rangeMatch = rangeHeader.match(/bytes=(\d+)-(\d+)?/);
+  const pos = Number(rangeMatch[1]);
+  const end = rangeMatch[2] ? Number(rangeMatch[2]) : undefined;
+  
+  const buffer = await cachedResponse.arrayBuffer();
+  const totalLength = buffer.byteLength;
+  const effectiveEnd = end !== undefined ? end : totalLength - 1;
+  const chunk = buffer.slice(pos, effectiveEnd + 1);
+
+  return new Response(chunk, {
+    status: 206,
+    statusText: 'Partial Content',
+    headers: {
+      'Content-Type': cachedResponse.headers.get('Content-Type'),
+      'Content-Range': `bytes ${pos}-${effectiveEnd}/${totalLength}`,
+      'Content-Length': chunk.byteLength,
+      'Accept-Ranges': 'bytes'
+    }
+  });
+}
