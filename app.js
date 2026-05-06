@@ -39,7 +39,6 @@ function togglePlay() {
 }
 
 audio.addEventListener('play', () => {
-    // Une fois que la lecture a vraiment commencé, on peut autoriser les événements pause normaux
     isSwapping = false; 
     isPlaying = true;
     playIcon.innerHTML = pauseSvg;
@@ -50,11 +49,7 @@ audio.addEventListener('play', () => {
 });
 
 audio.addEventListener('pause', () => {
-    // Si on est en train de charger la chanson suivante, on ignore cet événement de pause
-    if (isSwapping) {
-        console.log("Pause ignorée pendant le chargement");
-        return;
-    }
+    if (isSwapping) return;
     isPlaying = false;
     playIcon.innerHTML = playSvg;
     albumArtContainer.classList.remove('playing');
@@ -69,13 +64,18 @@ audio.addEventListener('loadedmetadata', () => {
     progressBar.max = audio.duration;
 });
 
+// Événement de fin de chanson
 audio.addEventListener('ended', () => {
-    console.log("Chanson terminée naturellement");
+    console.log("Fin de la chanson détectée");
     if (isLooping) {
         audio.currentTime = 0;
         audio.play().catch(e => console.log(e));
     } else {
-        nextTrack(true);
+        // Déclencher le bouton "Suivant" après un très court délai
+        setTimeout(() => {
+            console.log("Déclenchement automatique de la piste suivante");
+            nextTrack(true);
+        }, 100);
     }
 });
 
@@ -119,21 +119,27 @@ function renderPlaylist() {
 
 function loadTrack(index) {
     if (tracks.length === 0) return;
+    
+    // S'assurer que l'index est valide
+    if (index >= tracks.length) index = 0;
+    if (index < 0) index = tracks.length - 1;
+    
+    currentTrackIndex = index;
     const track = tracks[index];
     
-    console.log("Chargement piste:", track.name);
+    console.log("Changement vers la piste:", index, track.name);
     
-    // On entre en mode "changement"
     isSwapping = true;
-    
     audio.pause();
+    
+    // Nettoyer l'ancienne source si nécessaire
+    audio.src = "";
+    audio.removeAttribute("src");
+    audio.load();
+    
+    // Charger la nouvelle source
     audio.src = track.url;
-    
-    // Aide le navigateur à comprendre qu'il doit jouer dès qu'il peut
-    if (isPlaying) {
-        audio.autoplay = true;
-    }
-    
+    if (isPlaying) audio.autoplay = true;
     audio.load();
     
     trackTitle.textContent = track.name; 
@@ -153,9 +159,10 @@ function loadTrack(index) {
     });
 
     if (isPlaying) {
+        // Forcer la lecture
         audio.play().catch(e => {
-            console.log("Lecture auto bloquée, tentative de secours...");
-            setTimeout(() => { if(isPlaying) audio.play(); }, 200);
+            console.log("Echec lecture auto, tentative retardée...");
+            setTimeout(() => { if(isPlaying) audio.play(); }, 500);
         });
     }
 }
@@ -163,15 +170,15 @@ function loadTrack(index) {
 function prevTrack() {
     if (tracks.length === 0) return;
     isPlaying = true;
-    currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
-    loadTrack(currentTrackIndex);
+    let nextIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+    loadTrack(nextIndex);
 }
 
 function nextTrack(forcePlay = false) {
     if (tracks.length === 0) return;
     if (forcePlay) isPlaying = true;
-    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
-    loadTrack(currentTrackIndex);
+    let nextIndex = (currentTrackIndex + 1) % tracks.length;
+    loadTrack(nextIndex);
 }
 
 playBtn.addEventListener('click', togglePlay);
@@ -194,13 +201,12 @@ audioUpload.addEventListener('change', (e) => {
         }));
         if (tracks.length === 1 && !tracks[0].isFile && tracks[0].url === "Medina d'alger.mp3") {
             tracks = [...newTracks];
-            currentTrackIndex = 0;
         } else {
             tracks = [...tracks, ...newTracks];
         }
         renderPlaylist();
         isPlaying = true;
-        loadTrack(currentTrackIndex);
+        loadTrack(tracks.length - newTracks.length);
     }
 });
 
@@ -212,11 +218,6 @@ function updateMediaSession() {
             artist: "CLASS1C El Assima",
             album: "El Assima Collection",
             artwork: [
-                { src: 'images.png', sizes: '96x96', type: 'image/png' },
-                { src: 'images.png', sizes: '128x128', type: 'image/png' },
-                { src: 'images.png', sizes: '192x192', type: 'image/png' },
-                { src: 'images.png', sizes: '256x256', type: 'image/png' },
-                { src: 'images.png', sizes: '384x384', type: 'image/png' },
                 { src: 'images.png', sizes: '512x512', type: 'image/png' },
             ]
         });
@@ -245,5 +246,5 @@ window.addEventListener('load', () => {
                 document.addEventListener('touchstart', start);
             });
         }
-    }, 1500);
+    }, 2000);
 });
