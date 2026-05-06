@@ -1,6 +1,7 @@
 const audio = new Audio();
 let isPlaying = false;
 let currentTrackIndex = 0;
+let isLooping = false;
 
 // Nous avons maintenant un format d'objet pour gérer les pistes par défaut et celles chargées
 let tracks = [
@@ -14,6 +15,7 @@ const playBtn = document.getElementById('playBtn');
 const playIcon = document.getElementById('playIcon');
 const prevBtn = document.getElementById('prevBtn');
 const nextBtn = document.getElementById('nextBtn');
+const loopBtn = document.getElementById('loopBtn');
 const progressBar = document.getElementById('progressBar');
 const currentTimeEl = document.getElementById('currentTime');
 const durationEl = document.getElementById('duration');
@@ -61,7 +63,14 @@ audio.addEventListener('loadedmetadata', () => {
     durationEl.textContent = formatTime(audio.duration);
     progressBar.max = audio.duration;
 });
-audio.addEventListener('ended', nextTrack);
+audio.addEventListener('ended', () => {
+    if (isLooping) {
+        audio.currentTime = 0;
+        audio.play().catch(e => console.log(e));
+    } else {
+        nextTrack();
+    }
+});
 
 progressBar.addEventListener('input', (e) => {
     const time = e.target.value;
@@ -153,6 +162,11 @@ function nextTrack() {
 playBtn.addEventListener('click', togglePlay);
 prevBtn.addEventListener('click', prevTrack);
 nextBtn.addEventListener('click', nextTrack);
+loopBtn.addEventListener('click', () => {
+    isLooping = !isLooping;
+    loopBtn.style.opacity = isLooping ? '1' : '0.5';
+    loopBtn.style.color = isLooping ? '#f43f5e' : '';
+});
 
 audioUpload.addEventListener('change', (e) => {
     const newFiles = Array.from(e.target.files);
