@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-el-assima-v15';
+const CACHE_NAME = 'classic-el-assima-v16';
 const urlsToCache = [
   './',
   './index.html',

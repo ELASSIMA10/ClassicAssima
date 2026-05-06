@@ -126,7 +126,7 @@ function loadTrack(index) {
     }
     
     trackTitle.textContent = track.name; 
-    trackArtist.textContent = "CLASS1C El Assima (v15)";
+    trackArtist.textContent = "CLASS1C El Assima (v16)";
     
     updateMediaSession();
     

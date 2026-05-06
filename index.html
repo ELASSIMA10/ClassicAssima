@@ -21,7 +21,7 @@
             <header class="site-header">
                 <div class="logo-text-main">
                     <span class="logo-classic">CLASS1C</span>
-                    <span class="logo-assima">El Assima <small style="font-size: 10px; opacity: 0.5;">V15</small></span>
+                    <span class="logo-assima">El Assima <small style="font-size: 10px; opacity: 0.5;">V16</small></span>
                 </div>
             </header>
 
@@ -87,12 +87,12 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw.js')
+                navigator.serviceWorker.register('./sw.js?v=15')
                 .then(registration => console.log('SW registered'))
                 .catch(err => console.log('SW failed', err));
             });
         }
     </script>
-    <script src="app.js"></script>
+    <script src="app.js?v=15"></script>
 </body>
 </html>
