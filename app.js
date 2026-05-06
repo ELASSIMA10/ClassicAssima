@@ -64,14 +64,13 @@ audio.addEventListener('loadedmetadata', () => {
     progressBar.max = audio.duration;
 });
 
-// Événement de fin de chanson
 audio.addEventListener('ended', () => {
-    console.log("Fin de la chanson détectée");
+    console.log("Ended event");
     if (isLooping) {
         audio.currentTime = 0;
         audio.play().catch(e => console.log(e));
     } else {
-        // IMPORTANT: Appel DIRECT sans setTimeout pour conserver le privilège de lecture sur mobile
+        // Enchaînement 100% synchrone
         nextTrack(true);
     }
 });
@@ -116,31 +115,18 @@ function renderPlaylist() {
 
 function loadTrack(index) {
     if (tracks.length === 0) return;
-    
-    // S'assurer que l'index est valide
-    if (index >= tracks.length) index = 0;
-    if (index < 0) index = tracks.length - 1;
-    
-    currentTrackIndex = index;
     const track = tracks[index];
     
-    console.log("Changement vers la piste:", index, track.name);
-    
     isSwapping = true;
-    audio.pause();
     
-    // Nettoyer l'ancienne source si nécessaire
-    audio.src = "";
-    audio.removeAttribute("src");
-    audio.load();
-    
-    // Charger la nouvelle source
-    audio.src = track.url;
-    if (isPlaying) audio.autoplay = true;
-    audio.load();
+    // On ne change le src que si c'est vraiment une nouvelle chanson
+    if (audio.src !== track.url) {
+        audio.src = track.url;
+        audio.autoplay = isPlaying; // Aide certains navigateurs
+    }
     
     trackTitle.textContent = track.name; 
-    trackArtist.textContent = "CLASS1C El Assima";
+    trackArtist.textContent = "CLASS1C El Assima (v14)";
     
     updateMediaSession();
     
@@ -156,10 +142,9 @@ function loadTrack(index) {
     });
 
     if (isPlaying) {
-        // Forcer la lecture
         audio.play().catch(e => {
-            console.log("Echec lecture auto, tentative retardée...");
-            setTimeout(() => { if(isPlaying) audio.play(); }, 500);
+            console.log("Retry needed");
+            setTimeout(() => { if(isPlaying) audio.play(); }, 200);
         });
     }
 }
@@ -167,15 +152,15 @@ function loadTrack(index) {
 function prevTrack() {
     if (tracks.length === 0) return;
     isPlaying = true;
-    let nextIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
-    loadTrack(nextIndex);
+    currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
+    loadTrack(currentTrackIndex);
 }
 
 function nextTrack(forcePlay = false) {
     if (tracks.length === 0) return;
     if (forcePlay) isPlaying = true;
-    let nextIndex = (currentTrackIndex + 1) % tracks.length;
-    loadTrack(nextIndex);
+    currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
+    loadTrack(currentTrackIndex);
 }
 
 playBtn.addEventListener('click', togglePlay);
@@ -198,12 +183,13 @@ audioUpload.addEventListener('change', (e) => {
         }));
         if (tracks.length === 1 && !tracks[0].isFile && tracks[0].url === "Medina d'alger.mp3") {
             tracks = [...newTracks];
+            currentTrackIndex = 0;
         } else {
             tracks = [...tracks, ...newTracks];
         }
         renderPlaylist();
         isPlaying = true;
-        loadTrack(tracks.length - newTracks.length);
+        loadTrack(currentTrackIndex);
     }
 });
 
@@ -214,9 +200,7 @@ function updateMediaSession() {
             title: track.name,
             artist: "CLASS1C El Assima",
             album: "El Assima Collection",
-            artwork: [
-                { src: 'images.png', sizes: '512x512', type: 'image/png' },
-            ]
+            artwork: [{ src: 'images.png', sizes: '512x512', type: 'image/png' }]
         });
         navigator.mediaSession.setActionHandler('play', () => togglePlay());
         navigator.mediaSession.setActionHandler('pause', () => togglePlay());

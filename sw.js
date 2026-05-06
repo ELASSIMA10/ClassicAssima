@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-el-assima-v13';
+const CACHE_NAME = 'classic-el-assima-v14';
 const urlsToCache = [
   './',
   './index.html',
@@ -39,9 +39,6 @@ self.addEventListener('activate', event => {
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
   
-  // Si c'est une requête de Range (souvent pour l'audio/vidéo), 
-  // on laisse le navigateur gérer directement sans passer par le cache.
-  // Cela évite les problèmes de mémoire et les erreurs de buffer sur mobile.
   if (event.request.headers.get('range')) {
     return; 
   }
@@ -49,7 +46,6 @@ self.addEventListener('fetch', event => {
   event.respondWith(
     caches.match(event.request)
       .then(response => {
-        // Pour les fichiers média, si on n'a pas de réponse en cache, on fait un fetch normal
         return response || fetch(event.request);
       })
   );
