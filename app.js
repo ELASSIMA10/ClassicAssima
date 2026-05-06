@@ -50,12 +50,18 @@ audio.addEventListener('play', () => {
     isPlaying = true;
     playIcon.innerHTML = pauseSvg;
     albumArtContainer.classList.add('playing');
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'playing';
+    }
 });
 
 audio.addEventListener('pause', () => {
     isPlaying = false;
     playIcon.innerHTML = playSvg;
     albumArtContainer.classList.remove('playing');
+    if ('mediaSession' in navigator) {
+        navigator.mediaSession.playbackState = 'paused';
+    }
 });
 
 audio.addEventListener('timeupdate', updateProgress);
@@ -68,7 +74,7 @@ audio.addEventListener('ended', () => {
         audio.currentTime = 0;
         audio.play().catch(e => console.log(e));
     } else {
-        nextTrack();
+        nextTrack(true);
     }
 });
 
@@ -127,6 +133,8 @@ function loadTrack(index) {
     trackTitle.textContent = track.name; 
     trackArtist.textContent = "CLASS1C El Assima";
     
+    updateMediaSession();
+    
     // Update active class in playlist
     const items = playlistEl.querySelectorAll('li');
     items.forEach((item, i) => {
@@ -141,7 +149,13 @@ function loadTrack(index) {
     });
     
     if (isPlaying) {
-        audio.play().catch(e => console.log(e));
+        audio.play().catch(e => {
+            console.log("Erreur play:", e);
+            // Retry for mobile background
+            setTimeout(() => {
+                if (isPlaying) audio.play().catch(err => console.log("Retry failed:", err));
+            }, 100);
+        });
     }
 }
 
@@ -149,14 +163,13 @@ function prevTrack() {
     if (tracks.length === 0) return;
     currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
     loadTrack(currentTrackIndex);
-    if(isPlaying) audio.play().catch(e=>console.log(e));
 }
 
-function nextTrack() {
+function nextTrack(forcePlay = false) {
     if (tracks.length === 0) return;
+    if (forcePlay) isPlaying = true;
     currentTrackIndex = (currentTrackIndex + 1) % tracks.length;
     loadTrack(currentTrackIndex);
-    if(isPlaying) audio.play().catch(e=>console.log(e));
 }
 
 playBtn.addEventListener('click', togglePlay);
@@ -194,6 +207,39 @@ audioUpload.addEventListener('change', (e) => {
         }
     }
 });
+
+
+function updateMediaSession() {
+    if ('mediaSession' in navigator) {
+        const track = tracks[currentTrackIndex];
+        navigator.mediaSession.metadata = new MediaMetadata({
+            title: track.name,
+            artist: "CLASS1C El Assima",
+            album: "El Assima Collection",
+            artwork: [
+                { src: 'images.png', sizes: '96x96', type: 'image/png' },
+                { src: 'images.png', sizes: '128x128', type: 'image/png' },
+                { src: 'images.png', sizes: '192x192', type: 'image/png' },
+                { src: 'images.png', sizes: '256x256', type: 'image/png' },
+                { src: 'images.png', sizes: '384x384', type: 'image/png' },
+                { src: 'images.png', sizes: '512x512', type: 'image/png' },
+            ]
+        });
+
+        navigator.mediaSession.setActionHandler('play', () => {
+            togglePlay();
+        });
+        navigator.mediaSession.setActionHandler('pause', () => {
+            togglePlay();
+        });
+        navigator.mediaSession.setActionHandler('previoustrack', () => {
+            prevTrack();
+        });
+        navigator.mediaSession.setActionHandler('nexttrack', () => {
+            nextTrack();
+        });
+    }
+}
 
 // Initialisation au chargement
 renderPlaylist();
