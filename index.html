@@ -3,15 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Classic El Assima - OK</title>
+    <title>CLASS1C El Assima</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Graduate&family=Alex+Brush&display=swap" rel="stylesheet">
     <link rel="manifest" href="manifest.json">
-    <link rel="icon" type="image/png" href="images.png">
-    <link rel="apple-touch-icon" href="images.png">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ClassicAssima">
+    <link rel="apple-touch-icon" href="images.png">
 </head>
 <body>
     <div class="app-layout">
@@ -36,10 +35,6 @@
         <!-- DROITE : Le Lecteur de Musique -->
         <aside class="sidebar-player">
             <div class="player-container">
-                <div class="header">
-                    <span class="title">CLASS1C</span>
-                </div>
-                
                 <div class="album-art-container">
                     <div class="album-art" id="albumArt">
                         <div class="music-note">🎵</div>
@@ -48,7 +43,7 @@
 
                 <div class="track-info">
                     <h1 id="trackTitle">Sélectionnez une musique</h1>
-                    <p id="trackArtist">Artiste Inconnu</p>
+                    <p id="trackArtist">CLASS1C El Assima</p>
                 </div>
 
                 <div class="progress-container">
@@ -58,6 +53,9 @@
                 </div>
 
                 <div class="controls">
+                    <button class="btn-control" id="loopBtn" title="Boucler la chanson">
+                        <svg viewBox="0 0 24 24"><path d="M12 4V1L8 5l4 4V6c3.31 0 6 2.69 6 6 0 1.01-.25 1.97-.7 2.8l1.46 1.46C19.54 15.03 20 13.57 20 12c0-4.42-3.58-8-8-8zm0 14c-3.31 0-6-2.69-6-6 0-1.01.25-1.97.7-2.8L5.24 7.74C4.46 8.97 4 10.43 4 12c0 4.42 3.58 8 8 8v3l4-4-4-4v3z"/></svg>
+                    </button>
                     <button class="btn-control" id="prevBtn">
                         <svg viewBox="0 0 24 24"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
                     </button>
@@ -67,32 +65,31 @@
                     <button class="btn-control" id="nextBtn">
                         <svg viewBox="0 0 24 24"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
                     </button>
-                    <button class="btn-control" id="loopBtn" title="Lire en boucle" style="opacity: 0.5;">
-                        <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/></svg>
-                    </button>
                 </div>
                 
                 <div class="file-loader">
-                    <label for="audioUpload" class="upload-btn">Ajouter des musiques</label>
-                    <input type="file" id="audioUpload" accept="audio/*" multiple>
+                    <label for="audioUpload" class="upload-btn">
+                        <span>AJOUTER DES MUSIQUES</span>
+                    </label>
+                    <input type="file" id="audioUpload" accept="audio/*" multiple style="display: none;">
                 </div>
             </div>
         </aside>
 
     </div>
-    
+
     <!-- Élément audio masqué -->
     <audio id="mainAudio" playsinline preload="auto"></audio>
     
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw_v17.js?v=17')
+                navigator.serviceWorker.register('./sw_v18.js?v=18')
                 .then(registration => console.log('SW registered'))
                 .catch(err => console.log('SW failed', err));
             });
         }
     </script>
-    <script src="app.js?v=17"></script>
+    <script src="app.js?v=18"></script>
 </body>
 </html>
