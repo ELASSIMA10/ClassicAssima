@@ -2,6 +2,7 @@ const audio = new Audio();
 let isPlaying = false;
 let currentTrackIndex = 0;
 let isLooping = false;
+let isSwapping = false; // Flag pour éviter les conflits d'état pendant le changement de piste
 
 // Nous avons maintenant un format d'objet pour gérer les pistes par défaut et celles chargées
 let tracks = [
@@ -38,9 +39,6 @@ function togglePlay() {
         if (playPromise !== undefined) {
             playPromise.catch(error => {
                 console.log("Erreur de lecture: ", error);
-                if(tracks[currentTrackIndex].url === "Medina d'alger.mp3") {
-                    alert("Le fichier \"Medina d'alger.mp3\" est introuvable. Veuillez utiliser le bouton 'Ajouter des musiques'.");
-                }
             });
         }
     }
@@ -56,6 +54,9 @@ audio.addEventListener('play', () => {
 });
 
 audio.addEventListener('pause', () => {
+    // Si on est en train de changer de chanson, on ne change pas l'état isPlaying à false
+    if (isSwapping) return;
+    
     isPlaying = false;
     playIcon.innerHTML = playSvg;
     albumArtContainer.classList.remove('playing');
@@ -69,11 +70,14 @@ audio.addEventListener('loadedmetadata', () => {
     durationEl.textContent = formatTime(audio.duration);
     progressBar.max = audio.duration;
 });
+
 audio.addEventListener('ended', () => {
+    console.log("Chanson terminée, passage à la suivante...");
     if (isLooping) {
         audio.currentTime = 0;
         audio.play().catch(e => console.log(e));
     } else {
+        // On force le passage à la suivante
         nextTrack(true);
     }
 });
@@ -117,7 +121,11 @@ function renderPlaylist() {
         li.addEventListener('click', () => {
             currentTrackIndex = index;
             loadTrack(currentTrackIndex);
-            if (!isPlaying) togglePlay();
+            // Si c'était en pause, on lance la lecture
+            if (!isPlaying) {
+                isPlaying = true;
+                setTimeout(() => audio.play(), 100);
+            }
         });
         
         playlistEl.appendChild(li);
@@ -129,10 +137,12 @@ function loadTrack(index) {
     
     const track = tracks[index];
     
-    // Reset and load
+    // Activer le flag de changement
+    isSwapping = true;
+    
     audio.pause();
     audio.src = track.url;
-    audio.load(); // Indispensable pour certains navigateurs mobiles
+    audio.load();
     
     trackTitle.textContent = track.name; 
     trackArtist.textContent = "CLASS1C El Assima";
@@ -152,26 +162,27 @@ function loadTrack(index) {
         }
     });
     
-    if (isPlaying) {
-        if ('mediaSession' in navigator) {
-            navigator.mediaSession.playbackState = 'playing';
-        }
-        
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(e => {
+    // Désactiver le flag après un court délai pour laisser l'événement pause se traiter
+    setTimeout(() => {
+        isSwapping = false;
+        if (isPlaying) {
+            if ('mediaSession' in navigator) {
+                navigator.mediaSession.playbackState = 'playing';
+            }
+            audio.play().catch(e => {
                 console.log("Erreur lecture auto:", e);
-                // Tentative de relance
+                // Deuxième tentative
                 setTimeout(() => {
-                    if (isPlaying) audio.play().catch(err => console.log("Echec relance:", err));
-                }, 300);
+                    if (isPlaying) audio.play();
+                }, 500);
             });
         }
-    }
+    }, 200);
 }
 
 function prevTrack() {
     if (tracks.length === 0) return;
+    isPlaying = true; // On veut que ça joue après le changement
     currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
     loadTrack(currentTrackIndex);
 }
@@ -185,7 +196,7 @@ function nextTrack(forcePlay = false) {
 
 playBtn.addEventListener('click', togglePlay);
 prevBtn.addEventListener('click', prevTrack);
-nextBtn.addEventListener('click', nextTrack);
+nextBtn.addEventListener('click', () => nextTrack(true));
 loopBtn.addEventListener('click', () => {
     isLooping = !isLooping;
     loopBtn.style.opacity = isLooping ? '1' : '0.5';
@@ -202,7 +213,6 @@ audioUpload.addEventListener('change', (e) => {
             isFile: true
         }));
         
-        // Retirer la chanson par défaut si l'utilisateur ajoute ses propres musiques et qu'elle n'était qu'un exemple
         if (tracks.length === 1 && !tracks[0].isFile && tracks[0].url === "Medina d'alger.mp3") {
             tracks = [...newTracks];
             currentTrackIndex = 0;
@@ -214,7 +224,8 @@ audioUpload.addEventListener('change', (e) => {
         loadTrack(currentTrackIndex);
         
         if (!isPlaying) {
-            audio.play().catch(e=>console.log(e));
+            isPlaying = true;
+            setTimeout(() => audio.play(), 100);
         }
     }
 });
@@ -237,18 +248,10 @@ function updateMediaSession() {
             ]
         });
 
-        navigator.mediaSession.setActionHandler('play', () => {
-            togglePlay();
-        });
-        navigator.mediaSession.setActionHandler('pause', () => {
-            togglePlay();
-        });
-        navigator.mediaSession.setActionHandler('previoustrack', () => {
-            prevTrack();
-        });
-        navigator.mediaSession.setActionHandler('nexttrack', () => {
-            nextTrack();
-        });
+        navigator.mediaSession.setActionHandler('play', () => togglePlay());
+        navigator.mediaSession.setActionHandler('pause', () => togglePlay());
+        navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
+        navigator.mediaSession.setActionHandler('nexttrack', () => nextTrack(true));
     }
 }
 
@@ -258,20 +261,17 @@ loadTrack(0);
 
 // Tentative d'autoplay au chargement
 window.addEventListener('load', () => {
-    // Petit délai pour laisser le temps au navigateur de s'initialiser
     setTimeout(() => {
         const playPromise = audio.play();
         if (playPromise !== undefined) {
             playPromise.then(() => {
-                console.log("Autoplay réussi");
                 isPlaying = true;
             }).catch(e => {
-                console.log("Autoplay bloqué, en attente d'interaction.");
                 isPlaying = false;
-                // On attend le premier clic pour démarrer
                 const startOnInteraction = () => {
                     if (!isPlaying) {
-                        togglePlay();
+                        isPlaying = true;
+                        loadTrack(currentTrackIndex);
                         document.removeEventListener('click', startOnInteraction);
                         document.removeEventListener('touchstart', startOnInteraction);
                     }
@@ -280,5 +280,5 @@ window.addEventListener('load', () => {
                 document.addEventListener('touchstart', startOnInteraction);
             });
         }
-    }, 1000);
+    }, 1500);
 });
