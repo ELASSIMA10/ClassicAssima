@@ -31,7 +31,6 @@ const pauseSvg = '<path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/>';
 
 function togglePlay() {
     if (tracks.length === 0) return;
-    
     if (isPlaying) {
         audio.pause();
     } else {
@@ -40,6 +39,8 @@ function togglePlay() {
 }
 
 audio.addEventListener('play', () => {
+    // Une fois que la lecture a vraiment commencé, on peut autoriser les événements pause normaux
+    isSwapping = false; 
     isPlaying = true;
     playIcon.innerHTML = pauseSvg;
     albumArtContainer.classList.add('playing');
@@ -49,7 +50,11 @@ audio.addEventListener('play', () => {
 });
 
 audio.addEventListener('pause', () => {
-    if (isSwapping) return;
+    // Si on est en train de charger la chanson suivante, on ignore cet événement de pause
+    if (isSwapping) {
+        console.log("Pause ignorée pendant le chargement");
+        return;
+    }
     isPlaying = false;
     playIcon.innerHTML = playSvg;
     albumArtContainer.classList.remove('playing');
@@ -65,11 +70,11 @@ audio.addEventListener('loadedmetadata', () => {
 });
 
 audio.addEventListener('ended', () => {
+    console.log("Chanson terminée naturellement");
     if (isLooping) {
         audio.currentTime = 0;
         audio.play().catch(e => console.log(e));
     } else {
-        // IMPORTANT: Appel synchrone de nextTrack pour conserver le geste utilisateur (mobile)
         nextTrack(true);
     }
 });
@@ -116,11 +121,19 @@ function loadTrack(index) {
     if (tracks.length === 0) return;
     const track = tracks[index];
     
-    // Activer le mode échange pour ignorer les événements pause intermédiaires
+    console.log("Chargement piste:", track.name);
+    
+    // On entre en mode "changement"
     isSwapping = true;
     
     audio.pause();
     audio.src = track.url;
+    
+    // Aide le navigateur à comprendre qu'il doit jouer dès qu'il peut
+    if (isPlaying) {
+        audio.autoplay = true;
+    }
+    
     audio.load();
     
     trackTitle.textContent = track.name; 
@@ -140,20 +153,11 @@ function loadTrack(index) {
     });
 
     if (isPlaying) {
-        // Appel DIRECT de play() sans setTimeout pour éviter le blocage iOS/Mobile en arrière-plan
-        const p = audio.play();
-        if (p !== undefined) {
-            p.catch(e => {
-                console.log("Lecture auto bloquée, tentative de secours...");
-                // Secours uniquement si bloqué
-                setTimeout(() => { if(isPlaying) audio.play(); }, 100);
-            });
-        }
+        audio.play().catch(e => {
+            console.log("Lecture auto bloquée, tentative de secours...");
+            setTimeout(() => { if(isPlaying) audio.play(); }, 200);
+        });
     }
-    
-    // Désactiver le flag après que l'appel synchrone soit fini
-    // On utilise un petit délai pour le flag uniquement, pas pour le play
-    setTimeout(() => { isSwapping = false; }, 300);
 }
 
 function prevTrack() {
