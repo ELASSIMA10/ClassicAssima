@@ -1,4 +1,4 @@
-const CACHE_NAME = 'classic-el-assima-v14';
+const CACHE_NAME = 'classic-el-assima-v15';
 const urlsToCache = [
   './',
   './index.html',
@@ -38,11 +38,9 @@ self.addEventListener('activate', event => {
 
 self.addEventListener('fetch', event => {
   const url = new URL(event.request.url);
-  
   if (event.request.headers.get('range')) {
     return; 
   }
-
   event.respondWith(
     caches.match(event.request)
       .then(response => {
