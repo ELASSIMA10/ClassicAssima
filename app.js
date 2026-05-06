@@ -1,10 +1,10 @@
-const audio = new Audio();
+const audio = document.getElementById('mainAudio');
 let isPlaying = false;
 let currentTrackIndex = 0;
 let isLooping = false;
-let isSwapping = false; // Flag pour éviter les conflits d'état pendant le changement de piste
+let isSwapping = false;
 
-// Nous avons maintenant un format d'objet pour gérer les pistes par défaut et celles chargées
+// Configuration des pistes
 let tracks = [
     { name: "Medina d'Alger", url: "Medina d'alger.mp3", isFile: false },
     { name: "El Assima - Defra دفرة", url: "El Assima - Defra دفرة - Abdelghani Yaddaden.mp3", isFile: false },
@@ -35,12 +35,7 @@ function togglePlay() {
     if (isPlaying) {
         audio.pause();
     } else {
-        let playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.catch(error => {
-                console.log("Erreur de lecture: ", error);
-            });
-        }
+        audio.play().catch(e => console.log("Play failed:", e));
     }
 }
 
@@ -54,9 +49,7 @@ audio.addEventListener('play', () => {
 });
 
 audio.addEventListener('pause', () => {
-    // Si on est en train de changer de chanson, on ne change pas l'état isPlaying à false
     if (isSwapping) return;
-    
     isPlaying = false;
     playIcon.innerHTML = playSvg;
     albumArtContainer.classList.remove('playing');
@@ -72,12 +65,11 @@ audio.addEventListener('loadedmetadata', () => {
 });
 
 audio.addEventListener('ended', () => {
-    console.log("Chanson terminée, passage à la suivante...");
     if (isLooping) {
         audio.currentTime = 0;
         audio.play().catch(e => console.log(e));
     } else {
-        // On force le passage à la suivante
+        // IMPORTANT: Appel synchrone de nextTrack pour conserver le geste utilisateur (mobile)
         nextTrack(true);
     }
 });
@@ -91,7 +83,6 @@ progressBar.addEventListener('input', (e) => {
 function updateProgress() {
     const { duration, currentTime } = audio;
     if (isNaN(duration)) return;
-    
     progressBar.value = currentTime;
     currentTimeEl.textContent = formatTime(currentTime);
 }
@@ -104,40 +95,28 @@ function formatTime(seconds) {
 
 function renderPlaylist() {
     playlistEl.innerHTML = '';
-    
     if (tracks.length === 0) {
         playlistEl.innerHTML = '<li class="playlist-empty">Aucune musique chargée</li>';
         return;
     }
-    
     tracks.forEach((track, index) => {
         const li = document.createElement('li');
         li.textContent = track.name;
-        
-        if (index === currentTrackIndex) {
-            li.classList.add('active');
-        }
-        
+        if (index === currentTrackIndex) li.classList.add('active');
         li.addEventListener('click', () => {
             currentTrackIndex = index;
+            isPlaying = true;
             loadTrack(currentTrackIndex);
-            // Si c'était en pause, on lance la lecture
-            if (!isPlaying) {
-                isPlaying = true;
-                setTimeout(() => audio.play(), 100);
-            }
         });
-        
         playlistEl.appendChild(li);
     });
 }
 
 function loadTrack(index) {
     if (tracks.length === 0) return;
-    
     const track = tracks[index];
     
-    // Activer le flag de changement
+    // Activer le mode échange pour ignorer les événements pause intermédiaires
     isSwapping = true;
     
     audio.pause();
@@ -149,40 +128,37 @@ function loadTrack(index) {
     
     updateMediaSession();
     
-    // Mise à jour de la playlist (UI)
+    // UI Playlist
     const items = playlistEl.querySelectorAll('li');
     items.forEach((item, i) => {
         if (i === index) {
             item.classList.add('active');
-            if(item.scrollIntoView) {
-                item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-            }
+            if(item.scrollIntoView) item.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
         } else {
             item.classList.remove('active');
         }
     });
-    
-    // Désactiver le flag après un court délai pour laisser l'événement pause se traiter
-    setTimeout(() => {
-        isSwapping = false;
-        if (isPlaying) {
-            if ('mediaSession' in navigator) {
-                navigator.mediaSession.playbackState = 'playing';
-            }
-            audio.play().catch(e => {
-                console.log("Erreur lecture auto:", e);
-                // Deuxième tentative
-                setTimeout(() => {
-                    if (isPlaying) audio.play();
-                }, 500);
+
+    if (isPlaying) {
+        // Appel DIRECT de play() sans setTimeout pour éviter le blocage iOS/Mobile en arrière-plan
+        const p = audio.play();
+        if (p !== undefined) {
+            p.catch(e => {
+                console.log("Lecture auto bloquée, tentative de secours...");
+                // Secours uniquement si bloqué
+                setTimeout(() => { if(isPlaying) audio.play(); }, 100);
             });
         }
-    }, 200);
+    }
+    
+    // Désactiver le flag après que l'appel synchrone soit fini
+    // On utilise un petit délai pour le flag uniquement, pas pour le play
+    setTimeout(() => { isSwapping = false; }, 300);
 }
 
 function prevTrack() {
     if (tracks.length === 0) return;
-    isPlaying = true; // On veut que ça joue après le changement
+    isPlaying = true;
     currentTrackIndex = (currentTrackIndex - 1 + tracks.length) % tracks.length;
     loadTrack(currentTrackIndex);
 }
@@ -197,6 +173,7 @@ function nextTrack(forcePlay = false) {
 playBtn.addEventListener('click', togglePlay);
 prevBtn.addEventListener('click', prevTrack);
 nextBtn.addEventListener('click', () => nextTrack(true));
+
 loopBtn.addEventListener('click', () => {
     isLooping = !isLooping;
     loopBtn.style.opacity = isLooping ? '1' : '0.5';
@@ -206,30 +183,22 @@ loopBtn.addEventListener('click', () => {
 audioUpload.addEventListener('change', (e) => {
     const newFiles = Array.from(e.target.files);
     if (newFiles.length > 0) {
-        
         const newTracks = newFiles.map(file => ({
             name: file.name.replace(/\.[^/.]+$/, ""),
             url: URL.createObjectURL(file),
             isFile: true
         }));
-        
         if (tracks.length === 1 && !tracks[0].isFile && tracks[0].url === "Medina d'alger.mp3") {
             tracks = [...newTracks];
             currentTrackIndex = 0;
         } else {
             tracks = [...tracks, ...newTracks];
         }
-        
         renderPlaylist();
+        isPlaying = true;
         loadTrack(currentTrackIndex);
-        
-        if (!isPlaying) {
-            isPlaying = true;
-            setTimeout(() => audio.play(), 100);
-        }
     }
 });
-
 
 function updateMediaSession() {
     if ('mediaSession' in navigator) {
@@ -247,7 +216,6 @@ function updateMediaSession() {
                 { src: 'images.png', sizes: '512x512', type: 'image/png' },
             ]
         });
-
         navigator.mediaSession.setActionHandler('play', () => togglePlay());
         navigator.mediaSession.setActionHandler('pause', () => togglePlay());
         navigator.mediaSession.setActionHandler('previoustrack', () => prevTrack());
@@ -255,29 +223,22 @@ function updateMediaSession() {
     }
 }
 
-// Initialisation au chargement
 renderPlaylist();
 loadTrack(0);
 
-// Tentative d'autoplay au chargement
+// Autoplay au chargement
 window.addEventListener('load', () => {
     setTimeout(() => {
-        const playPromise = audio.play();
-        if (playPromise !== undefined) {
-            playPromise.then(() => {
-                isPlaying = true;
-            }).catch(e => {
-                isPlaying = false;
-                const startOnInteraction = () => {
-                    if (!isPlaying) {
-                        isPlaying = true;
-                        loadTrack(currentTrackIndex);
-                        document.removeEventListener('click', startOnInteraction);
-                        document.removeEventListener('touchstart', startOnInteraction);
-                    }
+        if (!isPlaying) {
+            audio.play().then(() => { isPlaying = true; }).catch(() => {
+                const start = () => {
+                    isPlaying = true;
+                    loadTrack(currentTrackIndex);
+                    document.removeEventListener('click', start);
+                    document.removeEventListener('touchstart', start);
                 };
-                document.addEventListener('click', startOnInteraction);
-                document.addEventListener('touchstart', startOnInteraction);
+                document.addEventListener('click', start);
+                document.addEventListener('touchstart', start);
             });
         }
     }, 1500);
