@@ -84,12 +84,12 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw_v18.js?v=18')
+                navigator.serviceWorker.register('./sw_v19.js?v=19')
                 .then(registration => console.log('SW registered'))
                 .catch(err => console.log('SW failed', err));
             });
         }
     </script>
-    <script src="app.js?v=18"></script>
+    <script src="app.js?v=19"></script>
 </body>
 </html>
