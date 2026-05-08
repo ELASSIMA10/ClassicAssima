@@ -6,11 +6,11 @@
     <title>CLASS1C El Assima</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Graduate&family=Alex+Brush&display=swap" rel="stylesheet">
-    <link rel="manifest" href="manifest.json?v=21">
+    <link rel="manifest" href="manifest.json?v=22">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="ClassicAssima">
-    <link rel="apple-touch-icon" href="logo classic.jpeg">
+    <link rel="apple-touch-icon" href="icon_v21.jpeg">
 </head>
 <body>
     <div class="app-layout">
@@ -84,12 +84,12 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw_v21.js?v=21')
+                navigator.serviceWorker.register('./sw_v22.js?v=22')
                 .then(registration => console.log('SW registered'))
                 .catch(err => console.log('SW failed', err));
             });
         }
     </script>
-    <script src="app.js?v=21"></script>
+    <script src="app.js?v=22"></script>
 </body>
 </html>
