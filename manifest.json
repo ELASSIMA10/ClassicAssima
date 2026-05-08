@@ -1,16 +1,16 @@
 {
   "name": "Classic El Assima",
-  "short_name": "El Assima Music",
+  "short_name": "ClassicAssima",
   "start_url": "./index.html",
   "display": "standalone",
-  "background_color": "#0f172a",
-  "theme_color": "#f43f5e",
-  "description": "Application de lecture de musique Classic El Assima",
+  "background_color": "#000000",
+  "theme_color": "#dc2626",
   "icons": [
     {
-      "src": "./images.png",
-      "sizes": "192x192 512x512",
-      "type": "image/png"
+      "src": "logo classic.jpeg",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
     }
   ]
 }
