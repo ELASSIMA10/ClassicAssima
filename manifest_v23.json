@@ -1,0 +1,16 @@
+{
+  "name": "Classic Assima",
+  "short_name": "Assima",
+  "start_url": "./index.html?v=23",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#dc2626",
+  "icons": [
+    {
+      "src": "bg.jpeg?v=23",
+      "sizes": "512x512",
+      "type": "image/jpeg",
+      "purpose": "any maskable"
+    }
+  ]
+}

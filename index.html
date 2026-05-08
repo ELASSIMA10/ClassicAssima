@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CLASS1C El Assima</title>
+    <title>Classic Assima</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800;900&family=Graduate&family=Alex+Brush&display=swap" rel="stylesheet">
-    <link rel="manifest" href="manifest.json?v=22">
+    <link rel="manifest" href="manifest_v23.json">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="ClassicAssima">
-    <link rel="apple-touch-icon" href="icon_v21.jpeg">
+    <meta name="apple-mobile-web-app-title" content="Assima">
+    <link rel="apple-touch-icon" href="bg.jpeg?v=23">
 </head>
 <body>
     <div class="app-layout">
@@ -43,7 +43,7 @@
 
                 <div class="track-info">
                     <h1 id="trackTitle">Sélectionnez une musique</h1>
-                    <p id="trackArtist">CLASS1C El Assima</p>
+                    <p id="trackArtist">Classic Assima</p>
                 </div>
 
                 <div class="progress-container">
@@ -84,12 +84,12 @@
     <script>
         if ('serviceWorker' in navigator) {
             window.addEventListener('load', () => {
-                navigator.serviceWorker.register('./sw_v22.js?v=22')
+                navigator.serviceWorker.register('./sw_v23.js?v=23')
                 .then(registration => console.log('SW registered'))
                 .catch(err => console.log('SW failed', err));
             });
         }
     </script>
-    <script src="app.js?v=22"></script>
+    <script src="app.js?v=23"></script>
 </body>
 </html>
