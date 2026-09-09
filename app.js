@@ -6,12 +6,12 @@ let isSwapping = false;
 
 // Configuration des pistes
 let tracks = [
-    { name: "Medina d'Alger", url: "Medina d'alger.mp3", isFile: false },
-    { name: "El Assima - Café des sports  مقهى الرياضات", url: "El Assima - Café des sports  مقهى الرياضات ( Album Classic ).mp3", isFile: false },
+    { name: "El Assima - Medina d'Alger", url: "Medina d'alger.mp3", isFile: false },
     { name: "El Assima - Men Matar l’Matar", url: "El Assima - Men Matar l’Matar ( Album Classic ) - El Assima.mp3", isFile: false },
-    { name: "El Assima - Defra دفرة", url: "El Assima - Defra دفرة - Abdelghani Yaddaden.mp3", isFile: false },
+    { name: "El Assima - Café des sports  مقهى الرياضات", url: "El Assima - Café des sports  مقهى الرياضات ( Album Classic ).mp3", isFile: false },
     { name: "El Assima - Sdaha Ma Yzoul", url: "El Assima - Sdaha Ma Yzoul  (Album Classic).mp3", isFile: false },
-    { name: "أرفد صباطك و أمشي - EL ASSIMA", url: "أرفد صباطك و أمشي - EL ASSIMA.mp3", isFile: false },
+    { name: "El Assima - Defra دفرة", url: "El Assima - Defra دفرة - Abdelghani Yaddaden.mp3", isFile: false },
+    { name: "EL ASSIMA - أرفد صباطك و أمشي", url: "أرفد صباطك و أمشي - EL ASSIMA.mp3", isFile: false },
     { name: "El Assima – بالاتحاد عاليين", url: "El Assima – بالاتحاد عاليين.mp4", isFile: false }
 ];
 
